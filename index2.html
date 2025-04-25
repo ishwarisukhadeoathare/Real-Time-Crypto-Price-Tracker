@@ -1,0 +1,305 @@
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Crypto Table Real-Time Updates
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <style>
+   /* Custom scrollbar for the table container on smaller screens */
+    .scrollbar-thin::-webkit-scrollbar {
+      height: 6px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1;
+      border-radius: 3px;
+    }
+  </style>
+ </head>
+ <body class="bg-white text-gray-900 font-sans">
+  <div class="max-w-7xl mx-auto px-4 py-6">
+   <h1 class="text-2xl font-bold mb-6 text-gray-900">
+    Cryptocurrency Prices - Real-Time Updates
+   </h1>
+   <div class="overflow-x-auto scrollbar-thin">
+    <table
+      id="crypto-table"
+      class="min-w-[900px] w-full border-separate border-spacing-y-2 text-sm"
+    >
+      <thead>
+        <tr class="text-left text-[13px] font-semibold text-gray-900">
+          <th class="pl-6 pr-3 py-3 w-[30px]">#</th>
+          <th class="pr-6 py-3 min-w-[140px]">Name</th>
+          <th class="pr-6 py-3 w-[110px]">Price</th>
+          <th class="pr-6 py-3 w-[70px]">1h %</th>
+          <th class="pr-6 py-3 w-[70px]">24h %</th>
+          <th class="pr-6 py-3 w-[70px]">7d %</th>
+          <th class="pr-6 py-3 w-[160px]">Market Cap</th>
+          <th class="pr-6 py-3 w-[180px]">Volume(24h)</th>
+          <th class="pr-6 py-3 w-[140px]">Circulating Supply</th>
+          <th class="pr-6 py-3 w-[140px] text-right">Last 7 Days</th>
+        </tr>
+      </thead>
+      <tbody id="crypto-tbody">
+        <!-- Rows will be rendered by JS -->
+      </tbody>
+    </table>
+   </div>
+  </div>
+
+  <script>
+    // Redux-like store implementation
+    const createStore = (reducer) => {
+      let state;
+      let listeners = [];
+      const getState = () => state;
+      const dispatch = (action) => {
+        state = reducer(state, action);
+        listeners.forEach((listener) => listener());
+      };
+      const subscribe = (listener) => {
+        listeners.push(listener);
+        return () => {
+          listeners = listeners.filter((l) => l !== listener);
+        };
+      };
+      dispatch({ type: "@@INIT" });
+      return { getState, dispatch, subscribe };
+    };
+
+    // Initial crypto data
+    const initialState = {
+      cryptos: [
+        {
+          id: 1,
+          name: "Bitcoin",
+          symbol: "BTC",
+          logo: "https://storage.googleapis.com/a1aa/image/a70d8485-831f-4f51-4342-64e7df783ef7.jpg",
+          price: 92345.12,
+          change1h: 0.37,
+          change24h: 1.12,
+          change7d: 9.87,
+          marketCap: 1845123456789,
+          volume24h: 42123456789,
+          circulatingSupply: "19.65M BTC",
+          chart:
+            "https://storage.googleapis.com/a1aa/image/d48c6cc5-e9d8-4416-9001-cc3f02dfbd6a.jpg",
+        },
+        {
+          id: 2,
+          name: "Ethereum",
+          symbol: "ETH",
+          logo: "https://storage.googleapis.com/a1aa/image/18d7dcbf-2910-4e27-26ca-9aaefc5e65f6.jpg",
+          price: 1765.89,
+          change1h: 0.52,
+          change24h: 2.87,
+          change7d: 12.34,
+          marketCap: 210987654321,
+          volume24h: 22345678901,
+          circulatingSupply: "119.45M ETH",
+          chart:
+            "https://storage.googleapis.com/a1aa/image/c2f86bb9-ce06-467e-70d2-231da8946afb.jpg",
+        },
+        {
+          id: 3,
+          name: "Tether",
+          symbol: "USDT",
+          logo: "https://storage.googleapis.com/a1aa/image/ba2c8086-6a55-4a9c-4349-4e8fb825abd2.jpg",
+          price: 1.0,
+          change1h: -0.01,
+          change24h: -0.02,
+          change7d: 0.05,
+          marketCap: 143456789012,
+          volume24h: 90123456789,
+          circulatingSupply: "144.12B USDT",
+          chart:
+            "https://storage.googleapis.com/a1aa/image/7894927e-3c1d-4a3d-791a-b81cb2497018.jpg",
+        },
+        {
+          id: 4,
+          name: "XRP",
+          symbol: "XRP",
+          logo: "https://storage.googleapis.com/a1aa/image/7e11ed5d-66a0-4e7a-5b7c-4e8a1be823d3.jpg",
+          price: 2.18,
+          change1h: 0.39,
+          change24h: 0.48,
+          change7d: 5.92,
+          marketCap: 128765432109,
+          volume24h: 4987654321,
+          circulatingSupply: "57.89B XRP",
+          chart:
+            "https://storage.googleapis.com/a1aa/image/27162d5d-95c5-4309-c2c6-fe03283b1c5b.jpg",
+        },
+        {
+          id: 5,
+          name: "BNB",
+          symbol: "BNB",
+          logo: "https://storage.googleapis.com/a1aa/image/ee06b428-cb94-4bdd-49bd-a265251e1295.jpg",
+          price: 598.34,
+          change1h: 0.12,
+          change24h: -1.05,
+          change7d: 3.45,
+          marketCap: 83456789012,
+          volume24h: 1765432109,
+          circulatingSupply: "139.45M BNB",
+          chart:
+            "https://storage.googleapis.com/a1aa/image/f89a630c-a647-4a43-1261-fd3e5465f2cc.jpg",
+        },
+        {
+          id: 6,
+          name: "Solana",
+          symbol: "SOL",
+          logo: "https://storage.googleapis.com/a1aa/image/c7433c00-447c-48a3-f358-b71703bc58fc.jpg",
+          price: 148.76,
+          change1h: 0.48,
+          change24h: 1.18,
+          change7d: 13.89,
+          marketCap: 76543210987,
+          volume24h: 4567890123,
+          circulatingSupply: "512.45M SOL",
+          chart:
+            "https://storage.googleapis.com/a1aa/image/35fcfea0-d922-4625-3dcc-62508803905f.jpg",
+        },
+      ],
+    };
+
+    // Action types
+    const UPDATE_CRYPTO = "UPDATE_CRYPTO";
+
+    // Action creator
+    const updateCrypto = (id, data) => ({
+      type: UPDATE_CRYPTO,
+      payload: { id, data },
+    });
+
+    // Reducer
+    function cryptoReducer(state = initialState, action) {
+      switch (action.type) {
+        case UPDATE_CRYPTO:
+          return {
+            ...state,
+            cryptos: state.cryptos.map((crypto) =>
+              crypto.id === action.payload.id
+                ? { ...crypto, ...action.payload.data }
+                : crypto
+            ),
+          };
+        default:
+          return state;
+      }
+    }
+
+    // Create store
+    const store = createStore(cryptoReducer);
+
+    // Utility functions for random changes
+    function randomPercentChange() {
+      // Random float between -2 and +2 with 2 decimals
+      return parseFloat((Math.random() * 4 - 2).toFixed(2));
+    }
+    function randomPriceChange(price) {
+      // Change price by -1% to +1%
+      const changePercent = (Math.random() * 2 - 1) / 100;
+      return parseFloat((price * (1 + changePercent)).toFixed(2));
+    }
+    function randomVolumeChange(volume) {
+      // Change volume by -5% to +5%
+      const changePercent = (Math.random() * 10 - 5) / 100;
+      return Math.max(0, Math.floor(volume * (1 + changePercent)));
+    }
+
+    // Format numbers with commas
+    function formatNumber(num) {
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // Format price with $ and commas
+    function formatPrice(price) {
+      if (price >= 1) return "$" + formatNumber(price.toFixed(2));
+      else return "$" + price.toFixed(4);
+    }
+
+    // Format percent with arrow and color
+    function formatPercent(num) {
+      const arrow = num > 0 ? "▲" : num < 0 ? "▼" : "";
+      const color = num > 0 ? "#2cae6b" : num < 0 ? "#b33a3a" : "#999";
+      return `<span style="color:${color}; font-weight:600;">${arrow} ${Math.abs(
+        num
+      ).toFixed(2)}%</span>`;
+    }
+
+    // Format large numbers for market cap and volume
+    function formatLargeNumber(num) {
+      if (num >= 1e12) return (num / 1e12).toFixed(2) + "T";
+      if (num >= 1e9) return (num / 1e9).toFixed(2) + "B";
+      if (num >= 1e6) return (num / 1e6).toFixed(2) + "M";
+      if (num >= 1e3) return (num / 1e3).toFixed(2) + "K";
+      return num.toString();
+    }
+
+    // Render function
+    function render() {
+      const tbody = document.getElementById("crypto-tbody");
+      const { cryptos } = store.getState();
+      tbody.innerHTML = "";
+      cryptos.forEach((crypto) => {
+        const tr = document.createElement("tr");
+        tr.className =
+          crypto.id % 2 === 0 ? "bg-[#f7fafc] border border-gray-200 rounded-lg" : "bg-white border border-gray-200 rounded-lg";
+
+        tr.innerHTML = `
+          <td class="pl-6 pr-3 py-4 align-middle text-gray-400 font-normal">${crypto.id}</td>
+          <td class="pr-6 py-4 flex items-center gap-2 font-semibold text-gray-900">
+            <img alt="${crypto.name} logo" class="w-5 h-5" src="${crypto.logo}" width="20" height="20" />
+            ${crypto.name}
+            <span class="text-gray-400 font-normal ml-1 text-xs">${crypto.symbol}</span>
+          </td>
+          <td class="pr-6 py-4 font-semibold ${crypto.change1h >= 0 ? 'text-[#2cae6b]' : 'text-[#b33a3a]'}">${formatPrice(crypto.price)}</td>
+          <td class="pr-6 py-4 font-semibold">${formatPercent(crypto.change1h)}</td>
+          <td class="pr-6 py-4 font-semibold">${formatPercent(crypto.change24h)}</td>
+          <td class="pr-6 py-4 font-semibold">${formatPercent(crypto.change7d)}</td>
+          <td class="pr-6 py-4 font-normal text-gray-900">${formatLargeNumber(crypto.marketCap)}</td>
+          <td class="pr-6 py-4 font-normal text-gray-900">$${formatLargeNumber(crypto.volume24h)}</td>
+          <td class="pr-6 py-4 font-normal text-gray-900">${crypto.circulatingSupply}</td>
+          <td class="pr-6 py-4 text-right">
+            <img alt="Line chart showing ${crypto.name} price trend over last 7 days in green" class="inline-block" height="30" src="${crypto.chart}" width="120" />
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Initial render
+    render();
+
+    // Simulate WebSocket updates every 1-2 seconds
+    setInterval(() => {
+      const { cryptos } = store.getState();
+      cryptos.forEach((crypto) => {
+        // Randomly update price, % changes, and volume24h
+        const newPrice = randomPriceChange(crypto.price);
+        const newChange1h = randomPercentChange();
+        const newChange24h = randomPercentChange();
+        const newChange7d = randomPercentChange();
+        const newVolume24h = randomVolumeChange(crypto.volume24h);
+
+        store.dispatch(
+          updateCrypto(crypto.id, {
+            price: newPrice,
+            change1h: newChange1h,
+            change24h: newChange24h,
+            change7d: newChange7d,
+            volume24h: newVolume24h,
+          })
+        );
+      });
+    }, 1000 + Math.random() * 1000);
+
+    // Subscribe to store updates to re-render
+    store.subscribe(render);
+  </script>
+ </body>
+</html>
