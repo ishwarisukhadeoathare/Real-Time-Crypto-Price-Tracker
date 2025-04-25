@@ -26,7 +26,6 @@ A lightweight, real-time cryptocurrency price tracker built using HTML, Tailwind
 
 
 
-## 📸 Screenshot
 
 ## 📸 Screenshot
 
@@ -41,3 +40,21 @@ A lightweight, real-time cryptocurrency price tracker built using HTML, Tailwind
 ```bash
 git clone https://github.com/your-username/crypto-price-tracker.git
 cd crypto-price-tracker
+
+```
+###📂 Project Structure
+```bash
+
+├── index.html        # Main file (HTML, JS, CSS)
+├── README.md         # Project info & instructions
+└── .gitignore        # Optional: Ignore system/env files
+```
+
+### 💡 Features
+✅ Live price updates
+✅ Visual trend indicators (▲/▼)
+✅ Sorting functionality
+✅ Volume, % change, and 7-day chart
+✅ Smooth animations and transitions
+
+
